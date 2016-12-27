@@ -47,7 +47,7 @@ public class MailCronServlet extends HttpServlet {
 
 		try {
 			Message msg = new MimeMessage(session);
-			msg.setFrom(new InternetAddress("gae@gae.com", "GOOGLE APP ENGINE"));
+			msg.setFrom(new InternetAddress("auto@test.appspotmail.com", "GOOGLE APP ENGINE"));
 			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(u.getEmail(), u.getNickname()));
 			msg.setText(message);
 			msg.setSubject(subject);
