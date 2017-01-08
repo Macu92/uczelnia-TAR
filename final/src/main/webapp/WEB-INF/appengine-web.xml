@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-    <application>test-153614</application>
+    <application>serene-athlete-153122</application>
     <version>${appengine.app.version}</version>
     <threadsafe>true</threadsafe>
     

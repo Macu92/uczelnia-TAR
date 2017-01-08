@@ -1,4 +1,5 @@
 package com.example.guestbook.servlets;
+import java.util.logging.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -25,13 +26,14 @@ import com.google.appengine.repackaged.org.joda.time.Period;
 import com.googlecode.objectify.ObjectifyService;
 
 public class MailCronServlet extends HttpServlet {
-
+	private static final Logger log = Logger.getLogger(MailCronServlet.class.getName());
+	  
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		System.out.println("CRON RUNN");
 		List<Event> events = ObjectifyService.ofy().load().type(Event.class).list();
 		for(Event e : events){
 			for(AssignedUser u:e.assignees){
+				log.info("User: "+u.getUser().getEmail()+" is notited:"+u.isNotofiacted());
 				if(checkDate(u.getHours(), new DateTime(e.date))&&!u.isNotofiacted()){
 					u.setNotofiacted(sendSimpleMessage(u.getUser(),e.getTitle()+" is COMING",e.getTitle()+" is COMING"));
 				}
@@ -45,20 +47,22 @@ public class MailCronServlet extends HttpServlet {
 		Properties props = new Properties();
 		Session session = Session.getDefaultInstance(props, null);
 
+
+		System.out.println("Message sending");
 		try {
 			Message msg = new MimeMessage(session);
-			msg.setFrom(new InternetAddress("auto@test.appspotmail.com", "GOOGLE APP ENGINE"));
+			msg.setFrom(new InternetAddress("ziniewiczmaciej@gmail.com", "GOOGLE APP ENGINE"));
 			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(u.getEmail(), u.getNickname()));
 			msg.setText(message);
 			msg.setSubject(subject);
 			Transport.send(msg);
 			return true;
 		} catch (AddressException e) {
-			e.printStackTrace();
+			log.info(e.getLocalizedMessage());
 		} catch (MessagingException e) {
-			e.printStackTrace();
+			log.info(e.getLocalizedMessage());
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			log.info(e.getLocalizedMessage());
 		}
 		return false;
 	}
