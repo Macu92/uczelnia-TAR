@@ -1,0 +1,99 @@
+// object Main {
+//   def main(args: Array[String]): Unit = {
+//     //val master = "spark://grid223-20:7077"
+ 
+//     val input = if (args.length == 0){
+//       "/home/student/Pobrane/small.log" //"http://grid223-20:9000//input/taglogs/small.log"
+//     }else{
+//       args(0)
+//     }
+ 
+//     val conf = new SparkConf().setAppName("pokaz_swoje_logi").setMaster("spark://grid223-20:7077")
+//     val sc   = new SparkContext(conf)
+ 
+    //val logs = sc.textFile("hdfs://grid223-20:9000/input/taglogs/small.log")
+ 
+    //    val logs = sc.textFile("hdfs://grid223-20:9000/input/taglogs/big.log")
+ 
+ 
+    val logs = sc.textFile("/FileStore/tables/0jrqm2qn1484246580232/testlog.txt")
+//     val r1 = sc.textFile("hdfs://grid223-20:9000/input/taglogsbig/huge10g.log")
+//     val r2 = sc.textFile("hdfs://grid223-20:9000/input/taglogsbig/huge10g2.log")
+//     val r3 = sc.textFile("hdfs://grid223-20:9000/input/taglogsbig/huge10g3.log")
+ 
+//     val rdds = Seq(r1, r2, r3)
+ 
+//     val logs = sc.union(rdds)
+ 
+    //val logs = sc.textFile("hdfs://grid223-20:9000/input/taglogs/big.log")
+ 
+ 
+    case class Log(   
+      host:String,
+      user:String,
+      date:String,
+      request:String,
+      response:String,
+      time:Long
+      )
+ 
+ 
+    val logRows = logs.map(log => log.split("\t")).map(x =>
+      Log(host=x(0),
+        user=x(1),
+        date=x(2),
+        request= x(3),
+        response= x(4),
+        time=x(5).toLong
+      )
+    )
+//      println(logRows.count())
+//      logRows.take(logRows.count().toInt).foreach(println) 
+ 
+//     /* ----------   ZAD 1   ---------- */
+        {
+          val linesNumber = logRows.count();
+          println("Ilosc linii = " + linesNumber)
+          
+          val bobAndAlice = logRows.filter(log=>List("alice","bob").contains(log.user)).map(log=>(log.user,1)).countByValue()
+          bobAndAlice.foreach(println)
+          val bobTime = logRows.filter(_.user.equals("bob")).map(log=>log.time).reduce(_+_)
+          println("Czas operacji Boba :"+bobTime)
+        }
+ 
+//     /* ======   ZAD 2   ====== */
+    {
+      var user = "bob"
+      val user_time_by_host = logRows.filter(_.user.equals(user)).map(log => (log.host, log.time)).reduceByKey(_ + _)
+ 
+      println(user+" ³¹czne czasy jego operacji na ka¿dym unikalnym serwerze")
+      user_time_by_host.collect().foreach(println)
+    }
+//     /* ======   ZAD 3   ====== */
+       {
+         val user = "user20"
+       
+         val hostMap = logRows.map(log => (log.host, (log.user, log.time, log.time))).reduceByKey( (A, B) => {
+ 
+           val userTimeA = if (A._1 == user) A._2 else 0L
+           val userTimeB = if (B._1 == user) B._2 else 0L
+ 
+          (   user
+            , userTimeA + userTimeB
+            , A._3 + B._3
+          )
+        }
+        )
+         println("---------------------------------------")
+        hostMap.map(el=>{
+          (el._1,1.0 * el._2._2 / el._2._3 * 100)
+        }).collect().foreach(println)
+       }
+   
+       
+     println(" ")
+     println(" ")
+//      System.exit(0)
+ 
+//   }
+// }
